@@ -84,7 +84,62 @@ def _template_function(active_dom: dict, context_doms: list, **addargs):
 
     return active_dom, output_message
 
+def change_octave(active_dom: dict, context_doms: list, addOctave: int, **addargs):
+    """
+    template function
 
+    :param active_dom: dict containing {filename:Path/str?, dom:etree.Element}
+    :type active_dom: dict
+    :param context_doms: list containing dom dicts
+    :type context_doms: list
+    :param addOctave: integer by which octave will be raised
+    :type addOctave: int
+    :param addargs: Additional arguments that are unused
+    """
+
+    output_message = ""
+    root = active_dom["dom"]
+
+    # get all notes with @oct
+    notes = root.xpath(".//mei:note[@oct]", namespaces=ns)
+
+    for note in notes:
+        # add add_octave to original value of @oct
+        new_oct = int(note.get("oct")) + addOctave
+        # check whether new oct value lies outside of SPN values, if so - skip
+        if new_oct < 0 or new_oct > 9:
+            output_message += (f"New octave value for note with xml:id '{note.get(XML_ID, 'unspecified')}' would be outside of SPN values - skipped.\n")
+            continue
+            # alternative, if program should stop:
+            # raise RuntimeError("New octave value for note with xml:id '{note.get(XML_ID, 'unspecified')}' would be outside of SPN values - aborted.")
+        note.set("oct", str(new_oct))
+
+    active_dom["dom"] = root
+
+    return active_dom, output_message
+
+
+
+#def change_octave(active_dom: dict, context_doms: list, addOctave, **addargs):
+#    """
+#    template function
+
+#    :param active_dom: dict containing {filename:Path/str?, dom:etree.Element}
+#    :type active_dom: dict
+#    :param context_doms: list containing dom dicts
+#    :type context_doms: list
+#    :param addargs: Additional arguments that are unused
+ #   """
+
+#    root = active_dom["dom"]
+
+ #   # xpath_result = root.xpath(".//mei:elem[@attrib='value']", namespaces=ns)
+
+  #  active_dom["dom"] = root
+   # output_message = ""
+
+    #return active_dom, output_message
+#
 def runtime_error(active_dom: dict, context_doms: list, **addargs):
     """
     This funtion raises a RuntimeError which will be shown to the user in mei-friend as they used a wrong iinput parameter or the wrong work package for the given file.
